@@ -1,0 +1,4 @@
+.daml/
+__pycache__/
+*.pyc
+.env

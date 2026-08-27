@@ -1,0 +1,62 @@
+-- Run with: daml test
+-- Everything here passes. Copy the shapes, do not copy the assertions blindly.
+module Test where
+
+import DA.Time (addRelTime, hours)
+import Daml.Script
+import Iou
+import Mandate
+
+testIou : Script ()
+testIou = script do
+  bank  <- allocateParty "Bank"
+  alice <- allocateParty "Alice"
+  bob   <- allocateParty "Bob"
+
+  iou <- submit bank do
+    createCmd Iou with issuer = bank; owner = alice; amount = 100.0
+
+  -- Bob cannot move Alice's money. Nobody wrote a permission check for this.
+  -- `controller owner` IS the check.
+  submitMustFail bob do exerciseCmd iou Give with newOwner = bob
+
+  -- Alice can.
+  iou2 <- submit alice do exerciseCmd iou Give with newOwner = bob
+
+  -- And nobody can split their way into more than they had.
+  submitMustFail bob do exerciseCmd iou2 Split with splitAmount = 150.0
+  pure ()
+
+testMandate : Script ()
+testMandate = script do
+  alice    <- allocateParty "Alice"
+  merchant <- allocateParty "Merchant"
+  now      <- getTime
+  let deadline = addRelTime now (hours 24)
+
+  -- Propose and accept. Alice offers, the merchant takes it up.
+  prop <- submit alice do
+    createCmd MandateProposal with
+      owner = alice; spender = merchant; cap = 100.0; expiresAt = deadline
+  m <- submit merchant do exerciseCmd prop Accept
+
+  -- Charging within the cap works, with no signature from Alice.
+  m <- submit merchant do exerciseCmd m Charge with amount = 30.0
+  m <- submit merchant do exerciseCmd m Charge with amount = 50.0
+
+  -- Over the cap fails ON THE LEDGER. This is the whole task.
+  submitMustFail merchant do exerciseCmd m Charge with amount = 40.0
+
+  -- Alice cannot charge herself using the merchant's choice.
+  submitMustFail alice do exerciseCmd m Charge with amount = 1.0
+
+  -- Raising the cap needs both signatures, so the merchant cannot do it alone.
+  submitMustFail merchant do exerciseCmd m Adjust with newCap = 500.0
+  m <- submitMulti [alice, merchant] [] do exerciseCmd m Adjust with newCap = 200.0
+
+  -- Alice revokes. Instantly, and the merchant cannot stop her.
+  submit alice do exerciseCmd m Revoke
+
+  -- The mandate is gone, so nothing more can be charged.
+  submitMustFail merchant do exerciseCmd m Charge with amount = 1.0
+  pure ()

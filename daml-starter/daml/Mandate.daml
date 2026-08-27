@@ -1,0 +1,77 @@
+-- Starter for the mandate task (D3 direct debit / D4 agent wallet).
+--
+-- One party lets another spend up to a cap, until a deadline, and can revoke
+-- at any time. Same contract either way: for D3 the spender is a merchant,
+-- for D4 it is an AI agent.
+--
+-- The point of the task: the cap is enforced HERE, in Daml. Not in your API.
+-- A cap checked in Python is a suggestion. A cap in a choice body is a rule.
+--
+-- What to build on top:
+--   * move real value: make Charge exercise a token transfer, not just record it
+--   * an allow-list of counterparties the spender may pay
+--   * per-period reset (harder than it looks, do the total cap first)
+--   * an audit view of every charge
+module Mandate where
+
+
+template Mandate
+  with
+    owner    : Party      -- who is paying
+    spender  : Party      -- merchant, or agent
+    cap      : Decimal    -- total they may spend over the mandate's life
+    spent    : Decimal    -- how much so far
+    expiresAt : Time
+  where
+    ensure cap > 0.0 && spent >= 0.0 && spent <= cap
+
+    -- Both must agree it exists. The owner cannot be signed up without
+    -- consenting, and the spender cannot be bound without consenting.
+    signatory owner, spender
+
+    -- Spend within the mandate. No owner signature needed, that is the point.
+    choice Charge : ContractId Mandate
+      with amount : Decimal
+      controller spender
+      do
+        now <- getTime
+        -- Deadlines are NOT enforced for you. Check them yourself.
+        assertMsg "mandate expired" (now < expiresAt)
+        assertMsg "amount must be positive" (amount > 0.0)
+        assertMsg "charge would exceed the cap" (spent + amount <= cap)
+        create this with spent = spent + amount
+
+    -- The owner can always stop it, and the spender cannot block that.
+    choice Revoke : ()
+      controller owner
+      do pure ()
+
+    -- Raising the cap needs both parties, because both are signatories.
+    choice Adjust : ContractId Mandate
+      with newCap : Decimal
+      controller owner, spender
+      do
+        assertMsg "new cap below what is already spent" (newCap >= spent)
+        create this with cap = newCap
+
+
+-- Propose and accept: the most common shape in Daml.
+-- You cannot force a contract on someone who has to sign it, and you are
+-- rarely online at the same time. So you offer, and they accept later.
+template MandateProposal
+  with
+    owner    : Party
+    spender  : Party
+    cap      : Decimal
+    expiresAt : Time
+  where
+    signatory owner
+    observer spender
+
+    choice Accept : ContractId Mandate
+      controller spender
+      do create Mandate with owner; spender; cap; spent = 0.0; expiresAt
+
+    choice Reject : ()
+      controller spender
+      do pure ()

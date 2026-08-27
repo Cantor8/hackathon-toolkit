@@ -1,0 +1,35 @@
+-- The smallest useful Canton contract. Read this first, then Mandate.daml.
+module Iou where
+
+template Iou
+  with
+    issuer : Party
+    owner  : Party
+    amount : Decimal
+  where
+    -- Checked on every create, forever. You cannot forget it in a new choice.
+    ensure amount > 0.0
+
+    -- Whose authority is needed for this to exist, and to be archived.
+    signatory issuer
+    -- Can see it. Cannot act on it unless a choice names them controller.
+    observer owner
+
+    -- Choices are CONSUMING by default: calling this archives the contract.
+    -- That is why it returns a new ContractId.
+    choice Give : ContractId Iou
+      with newOwner : Party
+      controller owner
+      do create this with owner = newOwner
+
+    choice Split : (ContractId Iou, ContractId Iou)
+      with splitAmount : Decimal
+      controller owner
+      do
+        -- Without this, Split 150 on a 100 Iou creates a 150 and a -50.
+        -- The `ensure` above catches the -50, but say what you mean.
+        assertMsg "split must be positive and smaller than the amount" $
+          splitAmount > 0.0 && splitAmount < amount
+        kept <- create this with amount = splitAmount
+        rest <- create this with amount = amount - splitAmount
+        pure (kept, rest)

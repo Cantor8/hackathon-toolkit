@@ -1,0 +1,10 @@
+sdk-version: 3.4.10
+name: daml-starter
+source: daml
+version: 0.0.1
+dependencies:
+  - daml-prim
+  - daml-stdlib
+  - daml-script
+build-options:
+  - --target=2.1
