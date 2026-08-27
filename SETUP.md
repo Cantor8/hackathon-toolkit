@@ -5,37 +5,65 @@ Two things you might need. Most tasks only need the first.
 - **LocalNet** for anything that talks to a ledger. Or skip it and use DevNet.
 - **The Daml toolchain** only if you are writing Daml contracts.
 
-## LocalNet
+## Where you run things
 
-A whole Canton network in Docker: three participants, three validators,
-Postgres, and some web UIs.
+Two options. **Start with the shared network.**
+
+| | Shared network (DevNet) | Your own (LocalNet) |
+|---|---|---|
+| Setup | none, we give you a token | Docker, 6 GB of images, 16 GB RAM |
+| Works offline | no | yes |
+| Recommended | **yes** | only if you want to break things |
+
+You do not need LocalNet to take part, and it is the slowest way to start.
+Ask us for DevNet credentials on the day and skip this whole section.
+
+## Optional: your own Canton network
+
+A whole network in Docker: three participants, three validators, Postgres and
+some web UIs. Useful if you want to work offline or reset everything.
 
 ### 1. Docker, with enough memory
 
-Docker Desktop must be running. Then **Settings, Resources, set memory to 16 GB**.
-The compose file asks for about 12 GB across the essential services, so 8 GB
-will thrash and you will think Canton is slow when it is your laptop.
+Docker Desktop running, then **Settings, Resources, memory: 16 GB**. The
+compose file wants about 12 GB, so 8 GB thrashes and you will blame Canton
+when it is your laptop.
 
-### 2. Put it somewhere Docker can read
+### 2. Pull the images before you arrive
 
-**This is the one that catches people.** macOS privacy settings usually stop
-Docker bind-mounting from `Documents`, `Desktop` or `Downloads`. You get a
-network where the web pages load but the ledger is dead, which looks like it
-worked.
-
-You can grant Docker Desktop access to those folders in System Settings,
-Privacy and Security, Files and Folders. Copying is faster and always works:
+**About 6 GB.** Do this at home. Fifty people pulling 6 GB on venue wifi will
+not work.
 
 ```bash
-cp -R <path-to>/splice/cluster/compose/localnet ~/localnet
+docker pull ghcr.io/digital-asset/decentralized-canton-sync/docker/splice-app:0.6.8
+docker pull ghcr.io/digital-asset/decentralized-canton-sync/docker/canton:0.6.8
+docker pull ghcr.io/digital-asset/decentralized-canton-sync/docker/wallet-web-ui:0.6.8
+docker pull ghcr.io/digital-asset/decentralized-canton-sync/docker/sv-web-ui:0.6.8
+docker pull ghcr.io/digital-asset/decentralized-canton-sync/docker/scan-web-ui:0.6.8
+docker pull ghcr.io/digital-asset/decentralized-canton-sync/docker/ans-web-ui:0.6.8
+docker pull postgres:14
+docker pull nginx:1.27.0
+docker pull busybox:1.37.0
 ```
 
-### 3. Start it
+All public, no login. `splice-app` is 2.4 GB and `canton` is 1.6 GB, the rest
+are a few hundred MB each.
+
+### 3. Get the compose files and start it
+
+They ship in the Splice release bundle, not in this repo. Follow the official
+instructions, which are kept up to date:
+
+<https://docs.dev.sync.global/app_dev/testing/localnet.html>
+
+Short version: download and extract `splice-node.tar.gz`, and the compose files
+are in `splice-node/docker-compose/localnet`. Then, from that directory:
 
 ```bash
-export LOCALNET_DIR=$HOME/localnet
+export LOCALNET_DIR=$PWD
 export IMAGE_TAG=0.6.8
-export PARTY_HINT=myteam-dev-1        # must be word-word-number, or it refuses
+export PARTY_HINT=myteam-dev-1
+export APP_PROVIDER_UI_PORT=3001    # port 3000 is usually taken
 
 docker compose --env-file "$LOCALNET_DIR/compose.env" \
   --env-file "$LOCALNET_DIR/env/common.env" \
@@ -44,30 +72,28 @@ docker compose --env-file "$LOCALNET_DIR/compose.env" \
   --profile sv --profile app-provider --profile app-user up -d
 ```
 
-Images come from `ghcr.io/digital-asset/decentralized-canton-sync/docker/` and
-need no login.
+Same command with `down -v` to stop and wipe.
 
-**If port 3000 is already in use** (Open WebUI, Next.js, Grafana, plenty of
-things use it) nginx will not start and the scan registry is unreachable, which
-breaks transfers. Add this before the command and everything works:
+`PARTY_HINT` must look like `word-word-number` or compose refuses to start.
 
-```bash
-export APP_PROVIDER_UI_PORT=3001
-```
-
-### 4. Wait for it
+### 4. Check it is up
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" localhost:2975/v2/state/ledger-end
 ```
 
-**401 means it is working.** The API is up and wants a token. 60 to 90 seconds.
-No response at all means it is still starting.
+**401 means it worked.** The API is up and wants a token. Takes 60 to 90
+seconds. No response at all means it is still starting.
 
-### Stop it
+### Two things that go wrong
 
-Same command with `down -v` instead of `up -d`. The `-v` wipes the database so
-you start clean.
+**Docker cannot bind-mount from Documents, Desktop or Downloads on macOS.**
+Extract the bundle somewhere else, like your home folder. Otherwise the web
+pages load while the ledger is dead, which looks like it worked.
+
+**Port 3000 is usually taken** by Next.js, Grafana or similar. nginx then fails
+and the registry is unreachable, so transfers break. `APP_PROVIDER_UI_PORT=3001`
+above avoids it.
 
 ### Ports
 
@@ -79,14 +105,13 @@ JSON Ledger API    2975   3975   4975
 Ledger API gRPC    2901   3901   4901
 Participant admin  2902   3902   4902
 Validator admin    2903   3903   4903
-Web UIs            2000   3000   4000
+Web UIs            2000   3001   4000
 Registry / scan    4000, Host: scan.localhost
 Postgres           5432
 ```
 
-`scan.localhost` often does not resolve. `c8lab.py` works around it by sending a
-`Host: scan.localhost` header to `localhost:4000`, which is more portable than
-editing `/etc/hosts`. If you want the browser UIs to work, add:
+`scan.localhost` often does not resolve. `c8lab.py` sends a `Host:` header
+instead. For the browser UIs, add to `/etc/hosts`:
 
 ```
 127.0.0.1  scan.localhost
