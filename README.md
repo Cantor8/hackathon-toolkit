@@ -12,6 +12,7 @@ It runs against two targets:
 
 | File | What |
 |---|---|
+| `CHALLENGES.md` | The problems, and what to build |
 | `SETUP.md` | Install LocalNet, and the Daml toolchain if you need it |
 | `API.md` | Tested cheat sheet of the APIs you will use, and what needs a token |
 | `TROUBLESHOOTING.md` | Every error we actually hit, and the fix |
@@ -19,6 +20,8 @@ It runs against two targets:
 | `daml-starter/` | Working Daml to copy from, including the mandate task |
 
 Start with `SETUP.md`, come back here.
+
+**Looking for the problems?** They are in [`CHALLENGES.md`](CHALLENGES.md).
 
 ## The lab
 
