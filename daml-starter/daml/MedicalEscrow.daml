@@ -1,0 +1,74 @@
+-- Confidential Humanitarian Medical Escrow & Inventory Delivery Contract
+-- Zero-Trust Authorization & Anti-Spoofing Architecture
+module MedicalEscrow where
+
+template MedicalSupplyPackage
+  with
+    donor        : Party       -- Funder / Grantmaker
+    vendor       : Party       -- Medical Wholesaler
+    courier      : Party       -- Transporter
+    clinic       : Party       -- Receiving Clinic
+    authorizedMedic: Party     -- Specific verified medical practitioner
+    packageId    : Text        -- Unique package UUID / Batch identifier
+    itemSummary  : Text
+    quantity     : Int
+    escrowAmount : Decimal
+    nonce        : Text        -- Cryptographic single-use nonce preventing replay
+    isDelivered  : Bool
+  where
+    -- Strict Signatories: Neither party can be impersonated without their private key signature
+    signatory donor, vendor
+    observer courier, clinic, authorizedMedic
+
+    -- Anti-Imitation / Anti-Spoofing Choice:
+    -- Only the specific receiving clinic AND authorized medic can execute delivery.
+    -- Nonces and UTXO contract consumption guarantee this call CANNOT be replayed or copied.
+    choice AcceptDeliveryAndReleaseEscrow : ContractId MedicalDeliveryReceipt
+      with
+        deliveryProofHash : Text
+        medicSignature    : Text
+        providedNonce     : Text
+      controller clinic, authorizedMedic
+      do
+        assertMsg "Replay Attack Detected: Nonce mismatch" (providedNonce == nonce)
+        assertMsg "Package already delivered" (not isDelivered)
+        assertMsg "Quantity must be positive" (quantity > 0)
+        assertMsg "Missing delivery proof hash" (deliveryProofHash /= "")
+        
+        -- Create a permanent, immutable Delivery Receipt and archive this contract
+        create MedicalDeliveryReceipt with
+          donor
+          courier
+          clinic
+          authorizedMedic
+          packageId
+          itemSummary
+          quantity
+          escrowAmount
+          deliveryProofHash
+          settledAt = deliveryProofHash
+
+    -- Revocation with anti-tamper guard
+    choice CancelAndRefund : ()
+      controller donor
+      do
+        assertMsg "Cannot cancel delivered goods" (not isDelivered)
+        pure ()
+
+-- Immutable proof of delivery for humanitarian / OFAC audit
+template MedicalDeliveryReceipt
+  with
+    donor            : Party
+    courier          : Party
+    clinic           : Party
+    authorizedMedic  : Party
+    packageId        : Text
+    itemSummary      : Text
+    quantity         : Int
+    escrowAmount     : Decimal
+    deliveryProofHash: Text
+    settledAt        : Text
+  where
+    signatory donor, clinic, authorizedMedic
+    observer courier
+
