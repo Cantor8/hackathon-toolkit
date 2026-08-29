@@ -71,6 +71,22 @@ Plus the ones you need for setup:
 The WebSocket variant is at `wss://api.validator.dev.digik.cantor8.tech/api/ledger`,
 and gRPC at `api.validator.dev.digik.cantor8.tech/api/rpc_ledger`.
 
+### "I am not an observer, so what can I even read?"
+
+Common question on the scanner task, and the premise is wrong.
+
+Observer is set per contract, by whoever wrote the template, when the contract
+is created. You cannot ask to become one afterwards. So stop looking for a way
+to subscribe, there isn't one.
+
+You do not need it. You are on the shared DevNet validator, and a validator is
+a stakeholder on every transaction its parties are involved in. Read it with
+the admin user and you have plenty to index: `POST /v2/state/active-contracts`
+for the current picture, then `WS /v2/updates` from that offset to stay
+current.
+
+For network-wide history on top of that, see the Scan API below.
+
 ## Scanner
 
 `https://scanner-ledger-read-api.dev.digik.cantor8.tech`
@@ -155,11 +171,38 @@ start now with no credentials, start here.
 | `/api/scan/v0/splice-instance-names` | GET | Network name and branding |
 | `/api/scan/v0/open-and-issuing-mining-rounds` | POST | Current mining rounds |
 | `/api/scan/v0/amulet-rules` | POST | Canton Coin rules contract |
+| `/api/scan/v1/updates` | POST | **Every update on the network, as transaction trees** |
 | `/registry/metadata/v1/info` | GET | Token standard registry info |
 
 Note the POST-only ones. A GET returns
 `405 HTTP method not allowed, supported methods: POST`, which reads like an
 error but is just the wrong verb.
+
+### The update feed
+
+`POST /api/scan/v1/updates` is the one worth your time on the scanner task. No
+token. It returns full transaction trees: `update_id`, `record_time`, `offset`,
+`migration_id`, and `events_by_id` with every created and archived event,
+template id and contract id.
+
+```json
+{"page_size": 200}
+```
+
+To carry on from where you stopped, pass the position back:
+
+```json
+{"page_size": 200,
+ "after": {"after_migration_id": 1, "after_record_time": "<a record_time>"}}
+```
+
+The cursor is a pair, the migration and the time, not one value. `page_size`
+goes up to 1000, and you will want it: this feed moves at roughly a thousand
+updates a minute, so small pages never catch up.
+
+This is Canton Coin and super validator traffic. It is not a universal
+explorer, and it does not include the Cantor8 tokens. Say so in your write-up
+rather than claiming more than you have.
 
 Full Scan API reference:
 `https://docs.dev.sync.global/app_dev/scan_api/scan_bulk_data_api.html`
