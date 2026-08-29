@@ -1,0 +1,204 @@
+/* Splash page at /. Self-contained: the dashboard's tokens in index.css are
+   deliberately not used here, so the landing's palette can't drift when the
+   dashboard theme changes. Fluid width, one viewport tall, nothing below the
+   fold. */
+
+.landing {
+  position: relative;
+  flex: 1;
+  min-height: 100vh;
+  overflow: hidden;
+  background: #09070e;
+  font-family: Manrope, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Single ambient glow, centred above the hero and clipped by .landing. */
+.landing-glow {
+  position: absolute;
+  z-index: 0;
+  top: -200px;
+  left: 50%;
+  width: 1100px;
+  height: 1100px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.2), transparent 60%);
+  pointer-events: none;
+}
+
+/* ---------- header ---------- */
+
+.landing-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 24px 48px;
+}
+
+.landing-mark {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: linear-gradient(150deg, #a78bfa, #6d38e0);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.landing-wordmark {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ---------- hero ---------- */
+
+.landing-hero {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 132px 48px 0;
+  text-align: center;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 13px 6px 10px;
+  margin-bottom: 30px;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 999px;
+  color: #c4b5fd;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: #a78bfa;
+  box-shadow: 0 0 10px #a78bfa;
+}
+
+.landing-title {
+  margin: 0 0 26px;
+  color: #fff;
+  font-size: 96px;
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+}
+
+/* Manrope ships no italic face, and index.css sets `font-synthesis: none`
+   globally — without re-enabling style synthesis here this word renders
+   upright and the contrast against line 1 is lost. */
+.landing-title em {
+  font-style: italic;
+  font-synthesis: style;
+  font-weight: 400;
+  color: #c4b5fd;
+}
+
+.landing-body {
+  max-width: 540px;
+  margin: 0 auto 40px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 17px;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+/* ---------- buttons ---------- */
+
+.landing-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.btn-solid,
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-family: inherit;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: filter 160ms ease, border-color 160ms ease;
+}
+
+.btn-solid {
+  padding: 17px 30px;
+  border: 0;
+  background: #a78bfa;
+  color: #12081f;
+  font-size: 16px;
+  font-weight: 800;
+  box-shadow: 0 16px 40px rgba(124, 58, 237, 0.35);
+}
+
+.btn-solid:hover {
+  filter: brightness(1.06);
+}
+
+.btn-ghost {
+  padding: 17px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: transparent;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.btn-ghost:hover {
+  border-color: rgba(255, 255, 255, 0.34);
+}
+
+.chev {
+  margin-left: 6px;
+  opacity: 0.5;
+}
+
+.btn-solid:focus-visible,
+.btn-ghost:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 3px;
+}
+
+/* ---------- responsive ---------- */
+
+/* The spec's 96px headline needs ~900px of line box; below that it would
+   overflow the viewport, so the type steps down while every other value
+   stays as specified. */
+@media (max-width: 980px) {
+  .landing-hero { padding-top: 96px; }
+  .landing-title { font-size: 72px; }
+}
+
+@media (max-width: 700px) {
+  .landing-header { padding: 24px 24px; }
+  .landing-hero { padding: 72px 24px 0; }
+  .landing-title { font-size: 52px; }
+  .landing-actions { flex-direction: column; align-self: stretch; }
+  .btn-solid,
+  .btn-ghost { width: 100%; }
+}
