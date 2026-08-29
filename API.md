@@ -85,6 +85,32 @@ the admin user and you have plenty to index: `POST /v2/state/active-contracts`
 for the current picture, then `WS /v2/updates` from that offset to stay
 current.
 
+You are also not limited to balances. `Holding` is an interface, so the toolkit
+filters for it with an `InterfaceFilter`, and that is why it looks like
+balances are all you can read. They are not. Ask for everything with a
+wildcard:
+
+```json
+{"identifierFilter": {"WildcardFilter": {"value": {"includeCreatedEventBlob": false}}}}
+```
+
+Drop that into `filtersByParty` on `POST /v2/state/active-contracts`, then use
+the same filter on `/v2/updates` from that offset. On a stock LocalNet the
+Holding filter returns one contract for the app user and the wildcard returns
+eight, across six templates: Amulet, ValidatorLicense,
+ValidatorLivenessActivityRecord, WalletAppInstall, ValidatorRight and
+ValidatorTopUpState.
+
+Two things you will hit straight after:
+
+- The synchronous updates endpoints return
+  `413 JSON_API_MAXIMUM_LIST_ELEMENTS_NUMBER_REACHED` once your query matches
+  more than a couple of hundred elements. Page by offset window, or use the
+  WebSocket. For a scanner you want the WebSocket anyway.
+- `filtersForAnyParty` returns 403 unless your user has rights over every party
+  it covers. Wildcard means all templates, not all parties. Stay with the
+  parties you have rights over.
+
 For network-wide history on top of that, see the Scan API below.
 
 ## Scanner
