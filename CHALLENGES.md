@@ -1,7 +1,7 @@
 # Challenges
 
-A third track, for people who would rather not write code, is coming. We will
-announce it on the day. If that is you, turn up anyway.
+Three tracks. Two of them you build, one of them you argue. Pick whichever
+suits you.
 
 ## Before you start
 
@@ -147,6 +147,65 @@ of Daml that stops it. Then we will revoke and try again.
 `daml-starter/Mandate.daml` in the toolkit is exactly this shape, with passing
 tests. Copy it and go. It records charges but does not move money yet, so
 that is your first real step.
+
+# No-code track
+
+No Daml, no Python, no Docker, no setup. You still have to understand Canton,
+and we judge this as seriously as the other two.
+
+## N1. What can you build on Canton that you cannot build on Ethereum?
+
+Pick one real use case and make the argument properly.
+
+The interesting claim about Canton is not that it is faster or cheaper. It is
+that two things are true at once: only the parties to a transaction can see it,
+and it still settles atomically across organisations that do not trust each
+other. Very little else gives you both.
+
+Find a case where that combination is the difference between possible and
+impossible, and show your working.
+
+**What to build**
+
+- One concrete use case. A named industry, a named workflow, real parties. Not
+  "supply chain", but "a tier-two supplier borrowing against an invoice before
+  the buyer has paid it".
+- What breaks today. Why does this need a shared ledger at all, and why has a
+  public chain not already solved it?
+- Which Canton property does the work. Privacy, atomic settlement across
+  parties, or both. Name who can see what, party by party.
+- The trade-off, honestly. You cannot read the whole ledger and check it
+  yourself the way you can on Ethereum, and the synchronizer everyone shares is
+  operated by a vetted set of organisations. Say what that costs.
+- A sketch of the flow. Who signs, who observes, what moves, in what order.
+
+**A good submission**
+
+Written, three pages at most. Or a three minute video. We are not counting
+pages. One use case understood properly beats five listed.
+
+Diagrams are welcome. A drawing of who can see what usually beats a paragraph
+describing it.
+
+**Traps**
+
+- "It is on a blockchain, so it is trustless." Canton is not trustless. A token
+  issuer is a named legal entity. Work out what you are still trusting, and say
+  so before we ask.
+- Picking something a database already solves. If one company owns all the data,
+  they should use Postgres. The cases worth writing about need parties who do
+  not trust each other.
+- Claiming privacy without naming who is excluded. "Private" means nothing until
+  you say which party cannot see it.
+
+**Where to start**
+
+The workshop covers the model, and that is most of what you need. Beyond it, the
+Canton docs at <https://docs.canton.network> have a chatbot that is decent at
+this kind of question.
+
+Then come and argue with us in the room. It is the fastest way in, and it costs
+you nothing.
 
 # Accelerator problems
 

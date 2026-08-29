@@ -11,6 +11,17 @@ DevNet:
     export C8_CLIENT_SECRET=...
     export C8_REGISTRY=https://<registry-host>        # needed for transfers
     python3 c8lab.py check
+
+Canton Coin on DevNet is served by the SV scan proxy, which uses the plain
+Splice paths and the DSO as admin, so it needs nothing extra:
+    export C8_REGISTRY=https://sv-proxy.dev.digik.cantor8.tech
+
+The Cantor8 tokens (c8ETH, c8BTC, c8TEST) live on a different registry that
+prefixes every route, and their admin is not the DSO:
+    export C8_REGISTRY=https://token-registry.dev.digik.cantor8.tech
+    export C8_REGISTRY_PREFIX=/api/c8
+    export C8_ADMIN_PARTY=cantor8-digik-1::1220...
+    python3 c8lab.py transfer alice bob 5 --instrument c8TEST
 """
 import argparse, base64, datetime, hmac, hashlib, json, os, sys, uuid
 import urllib.error, urllib.parse, urllib.request
@@ -30,6 +41,10 @@ REGISTRY      = os.environ.get("C8_REGISTRY",
                                "http://localhost:4000" if not IDP else "")
 REGISTRY_HOST = os.environ.get("C8_REGISTRY_HOST",
                                "scan.localhost" if not IDP else "")
+# Splice registries serve /registry/...; the Cantor8 one serves /api/c8/registry/...
+REGISTRY_PREFIX = os.environ.get("C8_REGISTRY_PREFIX", "")
+# The DSO issues Amulet. Every other registry has its own admin party.
+ADMIN_PARTY = os.environ.get("C8_ADMIN_PARTY", "")
 
 HOLDING = "#splice-api-token-holding-v1:Splice.Api.Token.HoldingV1:Holding"
 TRANSFER_FACTORY = ("#splice-api-token-transfer-instruction-v1:"
@@ -107,7 +122,7 @@ def registry(path, body=None, method=None):
     headers = {"Content-Type": "application/json"}
     if REGISTRY_HOST:
         headers["Host"] = REGISTRY_HOST
-    return _request(REGISTRY + path, body, headers, method)
+    return _request(REGISTRY + REGISTRY_PREFIX + path, body, headers, method)
 
 
 def ledger_end(sub=USER):
@@ -136,6 +151,12 @@ def dso_party(sub=ADMIN):
             return p["party"]
     raise LabError("could not find the DSO party. On LocalNet it appears once "
                    "the network has bootstrapped; wait and retry.")
+
+
+def admin_party(sub=ADMIN):
+    """Who issues the instrument. Defaults to the DSO, which is right for
+    Amulet and wrong for every other token."""
+    return ADMIN_PARTY or dso_party(sub)
 
 
 def grant_act_as(user_id, party, sub=ADMIN):
@@ -237,13 +258,13 @@ def transfer(sender, receiver, amount, instrument="Amulet", sub=USER, hours=24):
     if amt <= 0:
         raise LabError("amount must be greater than zero")
 
-    dso = dso_party()
+    admin = admin_party()
     hs = holdings(sender, sub=sub)
     # Same instrument, same admin, and not locked. Locked holdings show in your
     # balance but cannot be spent until the lock expires.
     spendable = [h for h in hs
                  if not h["locked"] and h["instrument"] == instrument
-                 and h["admin"] == dso]
+                 and h["admin"] == admin]
     total = sum(float(h["amount"]) for h in spendable)
     if not spendable:
         locked = sum(1 for h in hs if h["locked"])
@@ -253,10 +274,10 @@ def transfer(sender, receiver, amount, instrument="Amulet", sub=USER, hours=24):
         raise LabError(f"sender has {total} spendable {instrument}, needs {amt}")
 
     t0 = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
-    args = {"expectedAdmin": dso,
+    args = {"expectedAdmin": admin,
             "transfer": {"sender": sender, "receiver": receiver,
                          "amount": str(amount),
-                         "instrumentId": {"admin": dso, "id": instrument},
+                         "instrumentId": {"admin": admin, "id": instrument},
                          "requestedAt": t0.strftime("%Y-%m-%dT%H:%M:%SZ"),
                          "executeBefore": (t0 + datetime.timedelta(hours=hours)
                                            ).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -316,7 +337,9 @@ def check():
     """Run this first when something is broken."""
     print(f"base       {BASE}")
     print(f"mode       {'DevNet / Keycloak' if IDP else 'LocalNet / unsafe HS256'}")
-    print(f"registry   {REGISTRY or '(not set, transfers will fail)'}")
+    print(f"registry   {(REGISTRY + REGISTRY_PREFIX) if REGISTRY else '(not set, transfers will fail)'}")
+    if IDP or ADMIN_PARTY:
+        print(f"admin      {ADMIN_PARTY or '(DSO, correct for Amulet only)'}")
     token()
     print("token      ok")
     print(f"ledger end {ledger_end()}")
