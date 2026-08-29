@@ -110,7 +110,7 @@
 * **Slide Title:** Clinical Leadership & Founder-Market Fit
 * **Layout: Founder Profile:**
   - **Tanzil:**
-    - 🩺 **12 Years Clinical Experience:** Frontline patient care & acute emergency medicine background.
+    - 🩺 **12 Years Clinical Experience:** Frontline health background in hospital, general practice, public health and community care / commissioning health services.
     - 🏛️ **Government & Scaleup Leadership:** Clinical leadership roles across government healthcare bodies and Series D healthtech scaleups.
     - 🛡️ **Certified Clinical Safety Officer (CSO):** Regulatory consultant advising healthcare startups on patient safety, health informatics, and regulatory compliance.
 
