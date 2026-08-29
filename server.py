@@ -79,10 +79,6 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           <span class="w-2 h-2 rounded-full bg-teal-400 pulse-dot"></span>
           <span>Ledger Offset: <strong id="header-offset">100</strong></span>
         </div>
-        <a href="/slides" target="_blank" class="flex items-center space-x-1.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-semibold border border-teal-400/30 px-3 py-1 rounded-full text-xs transition shadow-lg">
-          <i class="fa-solid fa-person-chalkboard"></i>
-          <span>Present Slides</span>
-        </a>
         <button id="low-data-btn" onclick="toggleLowData()" class="flex items-center space-x-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1 rounded-full text-xs text-gray-300 transition">
           <i class="fa-solid fa-tower-broadcast text-yellow-400"></i>
           <span id="low-data-label">Low-Data: OFF</span>
@@ -674,20 +670,6 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         
         if path in ("/", "/index.html"):
             body = HTML_DASHBOARD.encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-            return
-
-        if path in ("/slides", "/slides.html"):
-            slides_path = os.path.join(os.path.dirname(__file__), "slides.html")
-            if os.path.exists(slides_path):
-                with open(slides_path, "rb") as f:
-                    body = f.read()
-            else:
-                body = b"<h1>Slides not found</h1>"
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iron Flower Protocol | Non-Technical Presentation (Track N1)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #050811; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .slide-card { min-height: 520px; }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between select-none">
+
+  <!-- Header -->
+  <header class="border-b border-gray-800 bg-gray-900/80 px-8 py-3.5 flex justify-between items-center sticky top-0 z-50 backdrop-blur-md">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-lg bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-400 font-bold">
+        <i class="fa-solid fa-spa text-lg text-emerald-400"></i>
+      </div>
+      <div>
+        <h1 class="text-base font-bold text-white flex items-center space-x-2">
+          <span>Iron Flower Protocol</span>
+          <span class="text-xs font-semibold text-emerald-300 bg-emerald-950/60 border border-emerald-700/50 px-2.5 py-0.5 rounded-full">Track N1 Presentation</span>
+        </h1>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex items-center space-x-3 text-xs">
+      <button onclick="toggleNotes()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3.5 py-1.5 rounded-lg border border-gray-700 transition flex items-center space-x-1.5">
+        <i class="fa-solid fa-comment-dots text-teal-400"></i><span id="notes-btn-label">Hide Notes (N)</span>
+      </button>
+      <button onclick="toggleFullscreen()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg border border-gray-700 transition">
+        <i class="fa-solid fa-expand"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Slide Canvas -->
+  <main class="flex-1 flex items-center justify-center p-6 max-w-6xl mx-auto w-full">
+    <div id="slide-container" class="glass rounded-2xl p-8 sm:p-12 w-full border border-gray-800 shadow-2xl relative flex flex-col justify-between slide-card transition-all duration-300">
+      <!-- Dynamic Content -->
+    </div>
+  </main>
+
+  <!-- Presenter Notes Drawer -->
+  <div id="notes-drawer" class="bg-gray-950/95 border-t border-teal-500/30 p-4 max-w-6xl mx-auto w-full rounded-t-2xl shadow-2xl">
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-xs font-bold uppercase tracking-wider text-teal-400 flex items-center space-x-1.5">
+        <i class="fa-solid fa-microphone"></i><span>Speaker Script (Word-for-Word for Tanzil)</span>
+      </p>
+      <span class="text-[11px] text-gray-500 font-mono">Press 'N' to toggle notes | 'Space' or '→' for next slide</span>
+    </div>
+    <p id="slide-notes" class="text-sm sm:text-base text-gray-200 leading-relaxed font-sans"></p>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <footer class="border-t border-gray-800/80 bg-gray-900/60 px-8 py-3 flex justify-between items-center text-xs text-gray-400">
+    <div>Presenter: <strong class="text-white">Tanzil</strong> (Clinician & CSO)</div>
+    <div class="flex items-center space-x-4">
+      <button onclick="prevSlide()" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-700 transition flex items-center space-x-1.5">
+        <i class="fa-solid fa-arrow-left"></i><span>Prev</span>
+      </button>
+      <span id="slide-counter" class="font-mono font-bold text-teal-400 text-sm">Slide 1 / 9</span>
+      <button onclick="nextSlide()" class="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg font-semibold transition flex items-center space-x-1.5">
+        <span>Next</span><i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+    <div class="font-mono text-gray-500">Built on Canton Network</div>
+  </footer>
+
+  <script>
+    const slides = [
+      {
+        title: "Iron Flower Protocol",
+        subtitle: "Confidential Healthcare Logistics, WHO Clinical Triage & Humanitarian Settlement",
+        content: `
+          <div class="text-center space-y-6 my-auto">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-4xl mb-2">
+              <i class="fa-solid fa-spa"></i>
+            </div>
+            <h2 class="text-4xl font-extrabold bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-300 bg-clip-text text-transparent">Iron Flower Protocol</h2>
+            <p class="text-xl text-gray-300 max-w-2xl mx-auto">A confidential blockchain health network supporting frontline healthcare workers and charities in crisis & conflict zones.</p>
+            <div class="flex justify-center gap-3 pt-4 text-xs font-semibold">
+              <span class="bg-teal-950/60 border border-teal-700/50 text-teal-300 px-3.5 py-1.5 rounded-full">Tanzil | Clinician & Regulatory Consultant</span>
+              <span class="bg-purple-950/60 border border-purple-700/50 text-purple-300 px-3.5 py-1.5 rounded-full">Built on Canton Network</span>
+              <span class="bg-amber-950/60 border border-amber-700/50 text-amber-300 px-3.5 py-1.5 rounded-full">Track N1 Presentation</span>
+            </div>
+          </div>
+        `,
+        notes: "Hello Cantor8 Judges. My name is Tanzil, and I have built the Iron Flower Protocol—a confidential blockchain health network supporting healthcare workers, NGOs, and charities with resilient medical supply chains and instant payments in crisis and conflict zones."
+      },
+      {
+        title: "The Crisis in Contested Zones",
+        subtitle: "Why Aid Fails When Civilians Need It Most",
+        content: `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-auto">
+            <div class="bg-gray-900/70 p-5 rounded-xl border border-gray-800 space-y-3">
+              <div class="w-10 h-10 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-lg"><i class="fa-solid fa-earth-americas"></i></div>
+              <h3 class="text-base font-bold text-white">1. Global Crisis Surge</h3>
+              <p class="text-xs text-gray-400 leading-relaxed">Escalating conflicts and natural disasters leave millions in urgent need of trauma surgery packs, blood plasma, and cold-chain insulin.</p>
+            </div>
+            <div class="bg-gray-900/70 p-5 rounded-xl border border-gray-800 space-y-3">
+              <div class="w-10 h-10 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg"><i class="fa-solid fa-handcuffs"></i></div>
+              <h3 class="text-base font-bold text-white">2. Scalping & Aid Theft</h3>
+              <p class="text-xs text-gray-400 leading-relaxed">Nefarious actors, warlords, and black-market cartels intercept shipments, scalping critical medication and disrupting supply chains.</p>
+            </div>
+            <div class="bg-gray-900/70 p-5 rounded-xl border border-gray-800 space-y-3">
+              <div class="w-10 h-10 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg"><i class="fa-solid fa-crosshairs"></i></div>
+              <h3 class="text-base font-bold text-white">3. Technology Failure</h3>
+              <p class="text-xs text-gray-400 leading-relaxed">Central databases get raided. Public chains like Ethereum broadcast hospital coordinates to the world, turning clinics into missile targets.</p>
+            </div>
+          </div>
+        `,
+        notes: "Every time you turn on the news, there's a natural disaster here, or an escalating conflict there. Sadly, this means more and more innocent people need urgent financial and material support. But the reality on the ground is grim: bad actors scalp life-saving medication. Centralized databases expose clinic locations to hostile raids, while public chains like Ethereum turn hospital supply flows into public military targets. We need a private, trustless bridge."
+      },
+      {
+        title: "Why Canton? The Deadly Trilemma",
+        subtitle: "Centralized SQL vs. Ethereum vs. Canton Network",
+        content: `
+          <div class="my-auto overflow-hidden rounded-xl border border-gray-800">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-gray-900/90 text-gray-300 font-bold border-b border-gray-800">
+                <tr>
+                  <th class="p-3.5">Architecture</th>
+                  <th class="p-3.5">Multi-Party Trust</th>
+                  <th class="p-3.5">Operational Privacy</th>
+                  <th class="p-3.5">Atomic DvP Escrow</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-800/60 bg-gray-900/40 text-gray-300">
+                <tr>
+                  <td class="p-3.5 font-bold text-white">Centralized SQL</td>
+                  <td class="p-3.5 text-rose-400"><i class="fa-solid fa-xmark mr-1"></i>Distrust / Deadlocked</td>
+                  <td class="p-3.5 text-amber-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Raided & Subpoenaed</td>
+                  <td class="p-3.5 text-rose-400"><i class="fa-solid fa-xmark mr-1"></i>Fragile Intermediaries</td>
+                </tr>
+                <tr>
+                  <td class="p-3.5 font-bold text-white">Ethereum (Public)</td>
+                  <td class="p-3.5 text-emerald-400"><i class="fa-solid fa-check mr-1"></i>Trust-Minimized</td>
+                  <td class="p-3.5 text-rose-400 font-bold"><i class="fa-solid fa-xmark mr-1"></i>Lethal Military Targeting</td>
+                  <td class="p-3.5 text-amber-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Risky / Volatile Gas</td>
+                </tr>
+                <tr class="bg-teal-950/30 font-semibold text-teal-200">
+                  <td class="p-3.5 text-teal-300 font-bold"><i class="fa-solid fa-spa text-emerald-400 mr-1.5"></i>Iron Flower (Canton)</td>
+                  <td class="p-3.5 text-emerald-400"><i class="fa-solid fa-check mr-1"></i>Multi-Node Consensus</td>
+                  <td class="p-3.5 text-emerald-400"><i class="fa-solid fa-shield-halved mr-1"></i>Sub-Transaction Confidential</td>
+                  <td class="p-3.5 text-emerald-400"><i class="fa-solid fa-check mr-1"></i>Atomic & Zero-Risk</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        `,
+        notes: "Why can't we solve this with existing tools? On a central database, counterparties don't trust each other with the keys. On Ethereum, every shipment and wallet balance is visible to enemy surveillance. Canton is the only ledger that gives us sub-transaction privacy—where outside nodes receive zero bytes—while guaranteeing instant, atomic delivery-vs-payment settlement."
+      },
+      {
+        title: "The Solution: Atomic DvP Medical Delivery",
+        subtitle: "Instant Courier Liquidity with Zero Counterparty Risk",
+        content: `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-auto text-xs">
+            <div class="bg-gray-900/60 p-5 rounded-xl border border-teal-500/30 space-y-3">
+              <div class="w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center font-bold">1</div>
+              <h4 class="text-sm font-bold text-white">Private Escrow Lock</h4>
+              <p class="text-gray-400">Donor locks Canton Coin (Amulet) in a confidential smart contract with a single-use cryptographic nonce.</p>
+            </div>
+            <div class="bg-gray-900/60 p-5 rounded-xl border border-teal-500/30 space-y-3">
+              <div class="w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center font-bold">2</div>
+              <h4 class="text-sm font-bold text-white">Frontline Hand-Off</h4>
+              <p class="text-gray-400">Local courier transports trauma kits and insulin across contested checkpoints to the clinic.</p>
+            </div>
+            <div class="bg-gray-900/60 p-5 rounded-xl border border-emerald-500/40 space-y-3 bg-emerald-950/20">
+              <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">3</div>
+              <h4 class="text-sm font-bold text-emerald-300">Atomic DvP Settlement</h4>
+              <p class="text-gray-300">Clinic signs acceptance. Stock updates immediately, and escrow unlocks instant payment to the courier simultaneously.</p>
+            </div>
+          </div>
+        `,
+        notes: "With this in mind, I built the Iron Flower Protocol—symbolizing how an unwilting flower can survive and bloom in the harshest climates. It is built natively on the Canton Network. As you can see, when a local courier delivers emergency trauma packs to a frontline clinic, the clinic cryptographically accepts delivery. Their medical inventory is updated immediately, unlocking the courier's escrow payment with zero counterparty risk."
+      },
+      {
+        title: "WHO Clinical EHR & Zero-Knowledge Triage",
+        subtitle: "Point-of-Care Bloods, Ultrasound Telemetry & Merkle Audit Trails",
+        content: `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-auto text-xs">
+            <div class="bg-gray-900/70 p-5 rounded-xl border border-gray-800 space-y-3">
+              <h4 class="text-sm font-bold text-teal-300 flex items-center space-x-1.5">
+                <i class="fa-solid fa-notes-medical"></i><span>International Clinical Coding</span>
+              </h4>
+              <p class="text-gray-300"><strong>WHO ICD-11:</strong> <code>ND33.0 Traumatic Amputation</code>, <code>MG44 Shock</code></p>
+              <p class="text-gray-300"><strong>SNOMED-CT:</strong> <code>284530008 Laceration Wound Care</code></p>
+              <p class="text-gray-300"><strong>Bloods Panel:</strong> <code>O-Neg | Hb: 6.4 g/dL | Lactate: 4.8 mmol/L</code></p>
+            </div>
+            <div class="bg-gray-900/70 p-5 rounded-xl border border-gray-800 space-y-3">
+              <h4 class="text-sm font-bold text-cyan-300 flex items-center space-x-1.5">
+                <i class="fa-solid fa-user-shield"></i><span>Zero-Knowledge Patient Anonymity</span>
+              </h4>
+              <p class="text-gray-300"><strong>ZK Patient Hash:</strong> <code>eb5e9d92e80...</code></p>
+              <p class="text-gray-300"><strong>On-Ledger Merkle Root:</strong> Verifiable by WHO/Red Cross auditors without leaking any doctor or patient PII.</p>
+              <p class="text-gray-300"><strong>Encrypted Media:</strong> FAST ultrasound scans and voice dictations stored off-ledger in edge vaults.</p>
+            </div>
+          </div>
+        `,
+        notes: "Additionally, these clinical encounters are coded to WHO ICD-11 and SNOMED-CT standards—making it easy for attending clinicians to log tests, blood panels, consultations, and diagnoses in an auditable manner through an on-ledger Merkle audit tool, while maintaining strict zero-knowledge patient privacy."
+      },
+      {
+        title: "Edge-Mesh Mode & 94% Bandwidth Savings",
+        subtitle: "Operating Smoothly Through Comms Blackouts & Electronic Warfare",
+        content: `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-auto text-xs">
+            <div class="bg-gray-900/70 p-5 rounded-xl border border-gray-800 space-y-2">
+              <h4 class="text-sm font-bold text-yellow-400"><i class="fa-solid fa-satellite-dish mr-1"></i>94% Bandwidth Savings</h4>
+              <p class="text-gray-400">Delta sync compresses transaction payloads, saving >148 KB per session over fragile 2G/satellite links.</p>
+            </div>
+            <div class="bg-gray-900/70 p-5 rounded-xl border border-gray-800 space-y-2">
+              <h4 class="text-sm font-bold text-teal-400"><i class="fa-solid fa-shield-virus mr-1"></i>Offline Partition Resilience</h4>
+              <p class="text-gray-400">Medics log triage encounters during comms blackouts; transactions automatically reconcile upon reconnection.</p>
+            </div>
+            <div class="bg-gray-900/70 p-5 rounded-xl border border-gray-800 space-y-2">
+              <h4 class="text-sm font-bold text-emerald-400"><i class="fa-solid fa-network-wired mr-1"></i>Multi-Node Failover</h4>
+              <p class="text-gray-400">Seamless failover between Primary Validator (14ms), SV Proxy (28ms), and Local Mesh (2ms).</p>
+            </div>
+          </div>
+        `,
+        notes: "Due to the nature of where healthcare workers are deployed, we accounted for poor internet connectivity and added an Edge-Mesh Mode. This mode batches transactions and saves over 94% of network traffic, ensuring medical services can operate over fragile satellite or 2G connections. If the primary validator goes down, the client seamlessly fails over to fallback SV nodes or local offline mesh participants without interrupting critical surgical care."
+      },
+      {
+        title: "Honest Trade-Offs & Trust Boundaries",
+        subtitle: "Fulfilling the 15% Honesty Rubric with Rigorous Disclosures",
+        content: `
+          <div class="space-y-4 my-auto text-xs">
+            <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-800 flex items-start space-x-3">
+              <i class="fa-solid fa-building-columns text-teal-400 text-base mt-0.5"></i>
+              <div>
+                <strong class="text-white text-sm block">1. Super-Validator Consortium Governance</strong>
+                <p class="text-gray-400 mt-0.5">Governed by a federation of vetted humanitarian organizations (UN, Red Cross, Swiss foundations) rather than anonymous miners.</p>
+              </div>
+            </div>
+            <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-800 flex items-start space-x-3">
+              <i class="fa-solid fa-temperature-arrow-down text-cyan-400 text-base mt-0.5"></i>
+              <div>
+                <strong class="text-white text-sm block">2. Physical Oracle Pairing</strong>
+                <p class="text-gray-400 mt-0.5">Daml cryptographic signatures prove authorized receipt; paired with physical tamper-evident NFC packaging and cold-chain IoT loggers.</p>
+              </div>
+            </div>
+            <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-800 flex items-start space-x-3">
+              <i class="fa-solid fa-scale-balanced text-amber-400 text-base mt-0.5"></i>
+              <div>
+                <strong class="text-white text-sm block">3. Selective Regulatory Disclosure</strong>
+                <p class="text-gray-400 mt-0.5">Regulators (OFAC/UN) verify sanctions compliance via disclosed contracts without viewing unrelated hospital patient records.</p>
+              </div>
+            </div>
+          </div>
+        `,
+        notes: "To be completely transparent about our trust boundaries: Canton is not trustless. We trust a federation of vetted humanitarian super-validators not to collude, and we pair cryptographic Daml signatures with physical tamper-evident seals. For conflict zones, this regulated, confidential trust model is far safer than public chain exposure."
+      },
+      {
+        title: "Founder Leadership & Clinical Credibility",
+        subtitle: "Deep Domain Expertise & Founder-Market Fit",
+        content: `
+          <div class="bg-gray-900/80 p-6 rounded-2xl border border-teal-500/30 my-auto text-xs space-y-4">
+            <div class="flex items-center space-x-4 border-b border-gray-800 pb-4">
+              <div class="w-14 h-14 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center text-2xl font-bold">
+                <i class="fa-solid fa-user-doctor"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-white">Tanzil</h3>
+                <p class="text-teal-400 text-sm font-medium">Clinician, Clinical Safety Officer & Regulatory Consultant</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+              <div class="bg-gray-950 p-3 rounded-lg border border-gray-800">
+                <strong class="text-white block text-sm mb-1"><i class="fa-solid fa-stethoscope text-teal-400 mr-1"></i>12 Years Clinical</strong>
+                <p class="text-gray-400">Frontline patient care and acute clinical practice experience.</p>
+              </div>
+              <div class="bg-gray-950 p-3 rounded-lg border border-gray-800">
+                <strong class="text-white block text-sm mb-1"><i class="fa-solid fa-landmark text-cyan-400 mr-1"></i>Leadership Roles</strong>
+                <p class="text-gray-400">Served in clinical leadership across government bodies & Series D healthtech scaleups.</p>
+              </div>
+              <div class="bg-gray-950 p-3 rounded-lg border border-gray-800">
+                <strong class="text-white block text-sm mb-1"><i class="fa-solid fa-award text-amber-400 mr-1"></i>Clinical Safety Officer</strong>
+                <p class="text-gray-400">Certified regulatory consultant advising startups on compliance and safety.</p>
+              </div>
+            </div>
+          </div>
+        `,
+        notes: "I bring 12 years of clinical experience, having served in clinical leadership roles across government and Series D scaleups, and as a certified Clinical Safety Officer and regulatory consultant advising startups in this problem space."
+      },
+      {
+        title: "Conclusion & Live System Access",
+        subtitle: "Iron Flower: Blooming in the Toughest Environments",
+        content: `
+          <div class="text-center space-y-6 my-auto">
+            <h3 class="text-3xl font-extrabold text-white">Ready for Global Humanitarian Impact</h3>
+            <p class="text-base text-gray-300 max-w-xl mx-auto">Iron Flower proves that Canton Network isn't just private—it makes life-saving healthcare logistics possible where all other systems fail.</p>
+            <div class="flex justify-center gap-4 text-xs font-semibold">
+              <a href="http://localhost:8088" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl transition flex items-center space-x-2">
+                <i class="fa-solid fa-play"></i><span>Open Live Web Portal (Port 8088)</span>
+              </a>
+              <span class="bg-gray-800 border border-gray-700 text-gray-300 px-4 py-2.5 rounded-xl font-mono">
+                python test_resilience.py
+              </span>
+            </div>
+          </div>
+        `,
+        notes: "Iron Flower proves that Canton Network isn't just private—it makes life-saving healthcare and aid delivery possible where every other architecture fails. Thank you, and I welcome your questions!"
+      }
+    ];
+
+    let currentSlide = 0;
+    let showNotes = true;
+
+    function renderSlide() {
+      const slide = slides[currentSlide];
+      const container = document.getElementById('slide-container');
+      
+      container.innerHTML = `
+        <div class="flex justify-between items-start border-b border-gray-800/80 pb-4 mb-4">
+          <div>
+            <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">${slide.title}</h2>
+            <p class="text-xs sm:text-sm text-teal-400 font-medium mt-0.5">${slide.subtitle}</p>
+          </div>
+          <span class="bg-gray-900 border border-gray-800 text-gray-400 text-xs px-2.5 py-1 rounded-md font-mono">
+            ${currentSlide + 1} / ${slides.length}
+          </span>
+        </div>
+        <div class="flex-1 flex flex-col justify-center py-2">
+          ${slide.content}
+        </div>
+      `;
+
+      document.getElementById('slide-notes').innerText = slide.notes;
+      document.getElementById('slide-counter').innerText = `Slide ${currentSlide + 1} / ${slides.length}`;
+    }
+
+    function nextSlide() {
+      if (currentSlide < slides.length - 1) {
+        currentSlide++;
+        renderSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        renderSlide();
+      }
+    }
+
+    function toggleNotes() {
+      showNotes = !showNotes;
+      const drawer = document.getElementById('notes-drawer');
+      const btn = document.getElementById('notes-btn-label');
+      if (showNotes) {
+        drawer.classList.remove('hidden');
+        btn.innerText = "Hide Notes (N)";
+      } else {
+        drawer.classList.add('hidden');
+        btn.innerText = "Show Notes (N)";
+      }
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'n' || e.key === 'N') {
+        toggleNotes();
+      }
+    });
+
+    renderSlide();
+  </script>
+</body>
+</html>
