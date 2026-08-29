@@ -1,11 +1,31 @@
-# Canton hackathon toolkit
+# 🌺 IronFlower (Tekkadan Protocol)
+### Resilient Canton Scanner, Drift Sentinel & Confidential Humanitarian EHR
 
-Get to your first Canton transaction without installing much.
+> **Cantor8 Hackathon 2026 Submission** | Targeting Track A1 (Scanner), Track A2 (Drift Sentinel) & Track N1 (Humanitarian Architecture)
 
-`c8lab.py` is Python 3, **stdlib only**, no `pip install`. That is deliberate:
-some laptops are locked down and you do not want to debug pip on the day.
+---
 
-It runs against two targets:
+## ⚡ Quickstart & Live Demo
+
+1. **Launch the Interactive Web Portal:**
+   ```bash
+   python server.py
+   ```
+   Open **`http://localhost:8088`** in your browser to view the real-time Medical Stock tracker, WHO clinical EHR triage, live Canton Scanner, and Drift Sentinel fault lab.
+
+2. **Run the Automated Resilience & Attack Benchmark:**
+   ```bash
+   python test_resilience.py
+   ```
+
+3. **Key Submission Documents:**
+   - 📄 **3-Page Whitepaper:** [`submission_N1_humanitarian_medical_supply.md`](submission_N1_humanitarian_medical_supply.md)
+   - 🎤 **Pitch Deck & Script:** [`PITCH_DECK.md`](PITCH_DECK.md)
+   - 📜 **Daml Smart Contract:** [`daml-starter/daml/MedicalEscrow.daml`](daml-starter/daml/MedicalEscrow.daml)
+
+---
+
+# Canton Hackathon Toolkit
 
 - **LocalNet**, a whole Canton network in Docker on your laptop. The default.
 - **DevNet**, the shared Cantor8 node. Set four environment variables.
