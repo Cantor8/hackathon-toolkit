@@ -138,6 +138,12 @@ def local_parties(sub=ADMIN):
 
 
 def find_party(prefix, sub=ADMIN):
+    # A full party id needs no lookup. Resolving one used to pull every party
+    # on the participant, which on the shared DevNet validator is thousands of
+    # entries and reads as a hang -- including via "c8lab.py holdings <id>",
+    # the command recommended precisely to avoid that cost.
+    if "::" in prefix:
+        return prefix
     for p in local_parties(sub):
         if p.split("::")[0] == prefix or p.startswith(prefix):
             return p
