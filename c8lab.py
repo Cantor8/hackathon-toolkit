@@ -23,7 +23,7 @@ prefixes every route, and their admin is not the DSO:
     export C8_ADMIN_PARTY=cantor8-digik-1::1220...
     python3 c8lab.py transfer alice bob 5 --instrument c8TEST
 """
-import argparse, base64, datetime, hmac, hashlib, json, os, sys, uuid
+import argparse, base64, datetime, hmac, hashlib, json, os, sys, time, uuid
 import urllib.error, urllib.parse, urllib.request
 
 BASE     = os.environ.get("C8_BASE", "http://localhost:2975")
@@ -65,17 +65,23 @@ def token(sub=USER):
     if IDP:
         if not CSEC:
             raise LabError("C8_IDP is set but C8_CLIENT_SECRET is not.")
-        if "t" not in _tok:
+        # DevNet tokens carry expires_in: 900. Caching for the life of the
+        # process meant anything running longer than fifteen minutes -- a demo,
+        # a watcher, an agent loop -- started failing partway through, as auth
+        # errors on calls that had worked minutes earlier.
+        if "t" not in _tok or time.time() >= _tok.get("exp", 0):
             data = urllib.parse.urlencode({
                 "grant_type": "client_credentials",
                 "client_id": CID, "client_secret": CSEC}).encode()
             url = f"{IDP}/realms/master/protocol/openid-connect/token"
             try:
-                _tok["t"] = json.loads(urllib.request.urlopen(
-                    urllib.request.Request(url, data=data), timeout=30
-                ).read())["access_token"]
+                resp = json.loads(urllib.request.urlopen(
+                    urllib.request.Request(url, data=data), timeout=30).read())
             except Exception as e:
                 raise LabError(f"could not get a token from {IDP}: {e}")
+            _tok["t"] = resp["access_token"]
+            # Refresh a minute early, so a token cannot expire mid-request.
+            _tok["exp"] = time.time() + max(int(resp.get("expires_in", 900)) - 60, 30)
         return _tok["t"]
     b = lambda x: base64.urlsafe_b64encode(x).rstrip(b"=")
     h = b(json.dumps({"alg": "HS256", "typ": "JWT"}, separators=(",", ":")).encode())
