@@ -61,7 +61,8 @@ class LabError(Exception):
     """Something went wrong in a way worth reading, not a stack trace."""
 
 
-def token(sub=USER):
+def token(sub=None):
+    sub = sub if sub is not None else USER
     if IDP:
         if not CSEC:
             raise LabError("C8_IDP is set but C8_CLIENT_SECRET is not.")
@@ -107,7 +108,8 @@ def _request(url, body=None, headers=None, method=None, timeout=30):
         return {"raw": raw.decode(errors="replace")[:600]}
 
 
-def call(path, body=None, sub=USER, method=None):
+def call(path, body=None, sub=None, method=None):
+    sub = sub if sub is not None else USER
     """Ledger API call."""
     return _request(BASE + path, body,
                     {"Authorization": f"Bearer {token(sub)}",
@@ -125,19 +127,23 @@ def registry(path, body=None, method=None):
     return _request(REGISTRY + REGISTRY_PREFIX + path, body, headers, method)
 
 
-def ledger_end(sub=USER):
+def ledger_end(sub=None):
+    sub = sub if sub is not None else USER
     return call("/v2/state/ledger-end", sub=sub)["offset"]
 
 
-def parties(sub=ADMIN):
+def parties(sub=None):
+    sub = sub if sub is not None else ADMIN
     return call("/v2/parties", sub=sub).get("partyDetails", [])
 
 
-def local_parties(sub=ADMIN):
+def local_parties(sub=None):
+    sub = sub if sub is not None else ADMIN
     return [p["party"] for p in parties(sub) if p.get("isLocal")]
 
 
-def find_party(prefix, sub=ADMIN):
+def find_party(prefix, sub=None):
+    sub = sub if sub is not None else ADMIN
     for p in local_parties(sub):
         if p.split("::")[0] == prefix or p.startswith(prefix):
             return p
@@ -145,7 +151,8 @@ def find_party(prefix, sub=ADMIN):
                    "\n  ".join(local_parties(sub)) or "  (none)")
 
 
-def dso_party(sub=ADMIN):
+def dso_party(sub=None):
+    sub = sub if sub is not None else ADMIN
     for p in parties(sub):
         if p["party"].startswith("DSO::"):
             return p["party"]
@@ -153,25 +160,29 @@ def dso_party(sub=ADMIN):
                    "the network has bootstrapped; wait and retry.")
 
 
-def admin_party(sub=ADMIN):
+def admin_party(sub=None):
+    sub = sub if sub is not None else ADMIN
     """Who issues the instrument. Defaults to the DSO, which is right for
     Amulet and wrong for every other token."""
     return ADMIN_PARTY or dso_party(sub)
 
 
-def grant_act_as(user_id, party, sub=ADMIN):
+def grant_act_as(user_id, party, sub=None):
+    sub = sub if sub is not None else ADMIN
     return call(f"/v2/users/{user_id}/rights",
                 {"userId": user_id, "identityProviderId": "",
                  "rights": [{"kind": {"CanActAs": {"value": {"party": party}}}}]},
                 sub=sub)
 
 
-def allocate_party(hint, sub=ADMIN, grant_to=USER):
+def allocate_party(hint, sub=None, grant_to=None):
     """Allocate, or reuse if it already exists, then grant act-as rights.
 
     Without the grant you allocate a party you cannot submit as, and every
     later call returns 403 with a valid token.
     """
+    sub = sub if sub is not None else ADMIN
+    grant_to = grant_to if grant_to is not None else USER
     for p in local_parties(sub):
         if p.split("::")[0] == hint:
             party = p
@@ -184,7 +195,8 @@ def allocate_party(hint, sub=ADMIN, grant_to=USER):
     return party
 
 
-def holdings(party, sub=USER):
+def holdings(party, sub=None):
+    sub = sub if sub is not None else USER
     """Holding is an INTERFACE. TemplateFilter matches nothing and returns an
     empty list with HTTP 200, which looks exactly like a zero balance."""
     body = {"filter": {"filtersByParty": {party: {"cumulative": [
@@ -206,8 +218,9 @@ def holdings(party, sub=USER):
     return out
 
 
-def submit(commands, act_as, sub=USER, disclosed=None, command_id=None,
+def submit(commands, act_as, sub=None, disclosed=None, command_id=None,
            want_transaction=False):
+    sub = sub if sub is not None else USER
     body = {"commands": commands,
             "commandId": command_id or f"c8lab-{uuid.uuid4()}",
             "actAs": act_as if isinstance(act_as, list) else [act_as],
@@ -224,12 +237,13 @@ def submit(commands, act_as, sub=USER, disclosed=None, command_id=None,
     return call(path, body, sub=sub)
 
 
-def create_preapproval_proposal(receiver, provider, dso=None, sub=USER):
+def create_preapproval_proposal(receiver, provider, dso=None, sub=None):
     """Step 3. Creates a PROPOSAL, not a live preapproval.
 
     The provider's automation accepts it a moment later. Until it does,
     transfers to you come back as `offer`, not `direct`.
     """
+    sub = sub if sub is not None else USER
     return submit([{"CreateCommand": {
         "templateId": PREAPPROVAL_PROPOSAL,
         "createArguments": {"receiver": receiver, "provider": provider,
@@ -237,7 +251,7 @@ def create_preapproval_proposal(receiver, provider, dso=None, sub=USER):
         act_as=receiver, sub=sub)
 
 
-def transfer(sender, receiver, amount, instrument="Amulet", sub=USER, hours=24):
+def transfer(sender, receiver, amount, instrument="Amulet", sub=None, hours=24):
     """Step 6. Token standard transfer, both phases.
 
     1. Ask the registry for the factory plus a choice context. Privacy means you
@@ -249,6 +263,7 @@ def transfer(sender, receiver, amount, instrument="Amulet", sub=USER, hours=24):
     'offer' (a TransferInstruction was created, receiver must accept), or
     'self'.
     """
+    sub = sub if sub is not None else USER
     if not REGISTRY:
         raise LabError("transfers need C8_REGISTRY. See README.md.")
     try:
@@ -315,7 +330,8 @@ def _find_instruction_cid(res):
     return None
 
 
-def accept_transfer(instruction_cid, receiver, sub=USER):
+def accept_transfer(instruction_cid, receiver, sub=None):
+    sub = sub if sub is not None else USER
     """Accept a pending offer. Same two-phase shape as transfer():
     ask the registry for the choice context, then exercise."""
     # GetChoiceContextRequest.meta is a flat string map, NOT {"values": {...}}.
