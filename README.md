@@ -165,9 +165,21 @@ client-credentials token. Everything else is the same.
 For DevNet you will also need `C8_REGISTRY` pointing at the Cantor8 registry, and
 Canton Coin has to be sent to you: give the team your party ID.
 
-**Not yet verified on DevNet.** Party allocation there may need the
-external-party topology flow rather than `POST /v2/parties`. If it fails at step
-2, that is why.
+DevNet also needs the ledger user set, because `ledger-api-user` is a LocalNet
+name and does not exist there:
+
+```
+export C8_USER=validator-backend@clients
+export C8_ADMIN_USER=validator-backend@clients
+export C8_REGISTRY=https://sv-proxy.dev.digik.cantor8.tech
+```
+
+Export these **before** starting the process. The values are read when `c8lab`
+is imported, so setting them from inside Python afterwards is too late, and the
+resulting failure is a 403 that mentions neither the user nor the cause.
+
+Party allocation on DevNet works through `POST /v2/parties`; no external-party
+topology flow is required.
 
 ## Docs
 
